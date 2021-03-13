@@ -18,31 +18,26 @@ labelsFile = open(f'{path}train_labels.csv')
 labels = [row.split(',') for row in labelsFile.read().split('\n')][1:]
 labelsFile.close()
 
-inputsD, outputsD = grab(path, 200, 200)
-
-print('Data Formatted')
+print('Data Read')
 
 dx = 0.001
 rate = 0.1
 beta = 0.9
 scale = 0.1
 layerData = [1000, 250, 62, 15, len(outputsD[0])]
-
 weights = nn.generateWeights(layerData, len(inputsD[0]))
 
 print('Weights Initialized')
-print('Training...')
 
 open(f'{path}scores.csv', 'r+').truncate(0)
 start = time.time()
 
-num, cost, t = 0, 0, 32347
-for inp in range(len(outputsD)):
-	inputs = inputsD[0]
-	outputs = outputsD[0]
+print('Training...')
 
-	inputsD = inputsD[1:]
-	outputsD = outputsD[1:]
+num, cost, t = 0, 0, 32347
+for row in labels:
+	inputs = read(row[0], path)
+	outputs = int(row[1])
 
 	weights, newOutputs = GD.backPropagation(inputs, weights, outputs, dx, rate)
 
