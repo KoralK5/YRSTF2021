@@ -3,15 +3,14 @@ import time
 import random; random.seed(1)
 import numpy as np
 from PIL import Image
-import TNeuralNetwork as nn
-import TDebounce as D
+import NeuralNetwork as nn
+import Debounce as D
 print('Imports Sucessfull')
 
 def grab(uuid, path):
 	f = Image.open(f'{path}{uuid}.tif')
-	f.show()
 	a = np.array(f)
-	return np.reshape(a, (27648))
+	return np.reshape(a, (96*96*3))
 
 path = 'D:\\Users\\Koral Kulacoglu\\Coding\\python\\AI\\YRSTF2021\\Data\\'
 labelsFile = open(f'{path}train_labels.csv')
@@ -24,8 +23,8 @@ dx = 0.001
 rate = 0.1
 beta = 0.9
 scale = 0.1
-layerData = [32, 32, 32, len(outputsD[0])]
-weights = nn.generateWeights(layerData, len(inputsD[0]))
+layerData = [32, 32, 32, len(labels[0][1])]
+weights = nn.generateWeights(layerData, len(labels[0][1]))
 
 print('Variables Initialized')
 open(f'{path}scores.csv', 'w+').truncate(0)
@@ -38,7 +37,7 @@ for row in labels:
 	inputs = grab(row[0], f'{path}train\\')
 	outputs = int(row[1])
 
-	weights, newOutputs = GD.backPropagation(inputs, weights, outputs, dx, rate)
+	weights, newOutputs = D.backPropagation(inputs, weights, outputs, dx, rate, beta, scale)
 
 	cost += nn.neuralNetworkCost(inputs, weights, outputs)
 	t = int(time.time() - start)
