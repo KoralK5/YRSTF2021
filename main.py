@@ -12,7 +12,7 @@ def grab(uuid, path):
 	a = np.array(f)
 	return np.reshape(a, (96*96*3))
 
-path = 'D:\\Users\\Koral Kulacoglu\\Coding\\python\\AI\\YRSTF2021\\Data\\'
+path = '/home/iantitor/Downloads/histopathologic-cancer-detection/'
 labelsFile = open(f'{path}train_labels.csv')
 labels = [row.split(',') for row in labelsFile.read().split('\n')][1:]
 labelsFile.close()
@@ -24,7 +24,7 @@ rate = 0.1
 beta = 0.9
 scale = 0.1
 layerData = [32, 32, 32, len(labels[0][1])]
-weights = nn.generateWeights(layerData, len(labels[0][1]))
+weights = nn.generateWeights(layerData, len(grab('f38a6374c348f90b587e046aac6079959adf3835', f'{path}train/')))
 
 print('Variables Initialized')
 open(f'{path}scores.csv', 'w+').truncate(0)
@@ -34,7 +34,7 @@ start = time.time()
 
 num, cost = 0, 0
 for row in labels:
-	inputs = grab(row[0], f'{path}train\\')
+	inputs = grab(row[0], f'{path}train/')
 	outputs = int(row[1])
 
 	weights, newOutputs = D.backPropagation(inputs, weights, outputs, dx, rate, beta, scale)
