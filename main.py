@@ -7,7 +7,7 @@ import TNeuralNetwork as nn
 import TDebounce as D
 print('Imports Sucessfull')
 
-def read(uuid, path):
+def grab(uuid, path):
 	f = Image.open(f'{path}{uuid}.tif')
 	f.show()
 	a = np.array(f)
@@ -36,7 +36,7 @@ print('Training...')
 
 num, cost, t = 0, 0, 32347
 for row in labels:
-	inputs = read(row[0], path)
+	inputs = grab(row[0], path)
 	outputs = int(row[1])
 
 	weights, newOutputs = GD.backPropagation(inputs, weights, outputs, dx, rate)
