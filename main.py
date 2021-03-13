@@ -24,17 +24,16 @@ dx = 0.001
 rate = 0.1
 beta = 0.9
 scale = 0.1
-layerData = [1000, 250, 62, 15, len(outputsD[0])]
+layerData = [32, 32, 32, len(outputsD[0])]
 weights = nn.generateWeights(layerData, len(inputsD[0]))
 
 print('Weights Initialized')
-
-open(f'{path}scores.csv', 'r+').truncate(0)
-start = time.time()
+open(f'{path}scores.csv', 'w+').truncate(0)
 
 print('Training...')
+start = time.time()
 
-num, cost, t = 0, 0, 32347
+num, cost = 0, 0
 for row in labels:
 	inputs = grab(row[0], path)
 	outputs = int(row[1])
@@ -42,9 +41,7 @@ for row in labels:
 	weights, newOutputs = GD.backPropagation(inputs, weights, outputs, dx, rate)
 
 	cost += nn.neuralNetworkCost(inputs, weights, outputs)
-	t = int(32347 - time.time() + start)
-	if t < 0:
-		break
+	t = int(time.time() - start)
 
 	if not (inp+1)%10:
 		print('\n\nNetwork:', num+1)
@@ -59,6 +56,3 @@ for row in labels:
 
 	np.save(f'{path}GDweights.npy', np.array(weights, dtype=object))
 	num += 1
-
-print('Final Cost:', cost)
-print('Iterations:', num)
