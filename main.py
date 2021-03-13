@@ -27,7 +27,7 @@ scale = 0.1
 layerData = [32, 32, 32, len(outputsD[0])]
 weights = nn.generateWeights(layerData, len(inputsD[0]))
 
-print('Weights Initialized')
+print('Variables Initialized')
 open(f'{path}scores.csv', 'w+').truncate(0)
 
 print('Training...')
@@ -35,7 +35,7 @@ start = time.time()
 
 num, cost = 0, 0
 for row in labels:
-	inputs = grab(row[0], path)
+	inputs = grab(row[0], f'{path}train\\')
 	outputs = int(row[1])
 
 	weights, newOutputs = GD.backPropagation(inputs, weights, outputs, dx, rate)
