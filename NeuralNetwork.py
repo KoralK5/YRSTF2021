@@ -1,4 +1,5 @@
 import numpy as np
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from copy import deepcopy
 
 def softmax(x):
@@ -19,7 +20,11 @@ def layer(inputs, weights):
 	biasedInputs = np.append(np.array(inputs), 1)
 	neuronInputs = np.repeat(np.array([biasedInputs]), len(weights), axis = 0)
 	weightedInputs = neuronInputs * np.array(weights)
-	return np.array(list(map(sigmoid, np.sum(weightedInputs, axis = 1))))
+	
+	with ThreadPoolExecutor() as executor:
+		weightedInputs = np.array(list(executor.map(sigmoid, np.sum(weightedInputs, axis = 1))))
+
+	return weightedInputs
 
 def neuralNetwork(inputs, weights):
 	outputs = []
