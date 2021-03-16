@@ -3,16 +3,16 @@ from itertools import product
 import concurrent.futures
 from copy import deepcopy
 
+def generateWeights(layerData, inputQuantity):
+	layerDepthLimit = len(layerData)
+	augmentedLayerData = [inputQuantity] + deepcopy(layerData)
+	return [np.random.rand(layerData[layerDepth], augmentedLayerData[layerDepth] + 1) - 0.5 for layerDepth in range(layerDepthLimit)]
+
 def softmax(x):
 	return np.exp(x - np.max(x)) / np.exp(x - np.max(x)).sum()
 
 def ReLU(x):
 	return max(x, 0)
-
-def generateWeights(layerData, inputQuantity):
-	layerDepthLimit = len(layerData)
-	augmentedLayerData = [inputQuantity] + deepcopy(layerData)
-	return [np.random.rand(layerData[layerDepth], augmentedLayerData[layerDepth] + 1) - 0.5 for layerDepth in range(layerDepthLimit)]
 
 def sigmoid(x):
 	return 1 / (1 + np.exp(-np.sum(x)))
