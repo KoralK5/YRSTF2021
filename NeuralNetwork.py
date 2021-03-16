@@ -1,11 +1,10 @@
 from copy import deepcopy
+from PIL import Image
 import time
 import random; random.seed(1)
 import numpy as np
-from PIL import Image
 import NeuralNetwork as nn
 import Debounce as D
-print('Imports Sucessfull')
 
 def grabRGB(uuid, path, size):
 	f = Image.open(f'{path}{uuid}.tif').resize(size)
@@ -19,6 +18,8 @@ def grabG(uuid, path, size):
 
 def prep():
 	global path, labels, dx, rate, beta, scale, size, layerData, weights
+
+	print('Imports Sucessfull')
 
 	path = 'D:\\Users\\Koral Kulacoglu\\Coding\\python\\AI\\YRSTF2021\\Data\\'
 	labelsFile = open(f'{path}train_labels.csv')
@@ -49,13 +50,13 @@ for row in labels:
 	outputs = int(row[1])
 
 	weights, newOutputs = D.backPropagation(inputs, weights, outputs, dx, rate, beta, scale)
+	np.save(f'{path}weights.npy', np.array(weights, dtype=object))
 
 	cost += nn.neuralNetworkCost(inputs, weights, outputs)
-	t = int(time.time() - start)
 
-	if not (inp+1)%1:
+	if not (num+1)%1:
 		print('\n\nNetwork:', num+1)
-		print(f'Time: {t}s')
+		print(f'Time: {time.time() - start}s')
 		print('Cost:', cost/1)
 		print('\nPred:', newOutputs)
 		print('Real:', outputs)
@@ -64,5 +65,4 @@ for row in labels:
 		f.write(f'\n{cost/1}'); f.close()
 		cost = 0
 
-	np.save(f'{path}weights.npy', np.array(weights, dtype=object))
 	num += 1
