@@ -18,10 +18,10 @@ def sigmoid(x):
 def layer(inputs, weights):
 	biasedInputs = np.append(np.array(inputs), 1)
 	neuronInputs = np.repeat(np.array([biasedInputs]), len(weights), axis = 0)
-	weightedInputs = np.sum(neuronInputs * np.array(weights), axis=1)
-	
+	weightedInputs = np.sum(neuronInputs * np.array(weights), 1)
+
 	actFunc = np.vectorize(sigmoid)
-	actFunc(weightedInputs)
+	weightedInputs = actFunc(weightedInputs)
 
 	return weightedInputs
 
