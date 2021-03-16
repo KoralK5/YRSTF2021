@@ -14,30 +14,29 @@ def generateWeights(layerData, inputQuantity):
 	augmentedLayerData = [inputQuantity] + deepcopy(layerData)
 	return [np.random.rand(layerData[layerDepth], augmentedLayerData[layerDepth] + 1) - 0.5 for layerDepth in range(layerDepthLimit)]
 
-def multiSigmoid(x):
-	global out
-	out.append(1 / (1 + np.exp(-np.sum(x))))
+def sigmoid(x):
+	return 1 / (1 + np.exp(-np.sum(x)))
 
 def layerMulti(inputs, weights):
 	biasedInputs = np.append(np.array(inputs), 1)
 	neuronInputs = np.repeat(np.array([biasedInputs]), len(weights), axis = 0)
 	weightedInputs = neuronInputs * np.array(weights)
 
-	out = []
 	with concurrent.futures.ThreadPoolExecutor() as executor:
-		executor.map(multiSigmoid, weightedInputs)
+		result = executor.map(sigmoid, weightedInputs)
 	
-	return np.array(out)
+	out = np.array([])
+	for row in result:
+		out = np.append(out, row)
 
-def singleSigmoid(x):
-	return 1 / (1 + np.exp(-np.sum(x)))
+	return np.array(out)
 
 def layerSingle(inputs, weights):
 	biasedInputs = np.append(np.array(inputs), 1)
 	neuronInputs = np.repeat(np.array([biasedInputs]), len(weights), axis = 0)
 	weightedInputs = neuronInputs * np.array(weights)
 	
-	out = list(map(singleSigmoid, weightedInputs))
+	out = list(map(sigmoid, weightedInputs))
 
 	return np.array(out)
 
