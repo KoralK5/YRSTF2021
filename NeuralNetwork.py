@@ -1,6 +1,4 @@
 import numpy as np
-from itertools import product
-import concurrent.futures
 from copy import deepcopy
 
 def generateWeights(layerData, inputQuantity):
@@ -15,41 +13,28 @@ def ReLU(x):
 	return max(x, 0)
 
 def sigmoid(x):
-	return 1 / (1 + np.exp(-np.sum(x)))
+	return 1 / (1 + np.exp(-x))
 
-def layerMulti(inputs, weights):
+def layer(inputs, weights):
 	biasedInputs = np.append(np.array(inputs), 1)
 	neuronInputs = np.repeat(np.array([biasedInputs]), len(weights), axis = 0)
-	weightedInputs = neuronInputs * np.array(weights)
-
-	with concurrent.futures.ThreadPoolExecutor() as executor:
-		result = executor.map(sigmoid, weightedInputs)
+	weightedInputs = np.sum(neuronInputs * np.array(weights), axis=1)
 	
-	out = np.array([])
-	for row in result:
-		out = np.append(out, row)
+	actFunc = np.vectorize(sigmoid)
+	actFunc(weightedInputs)
 
-	return np.array(out)
-
-def layerSingle(inputs, weights):
-	biasedInputs = np.append(np.array(inputs), 1)
-	neuronInputs = np.repeat(np.array([biasedInputs]), len(weights), axis = 0)
-	weightedInputs = neuronInputs * np.array(weights)
-	
-	out = list(map(sigmoid, weightedInputs))
-
-	return np.array(out)
+	return weightedInputs
 
 def neuralNetwork(inputs, weights):
 	outputs = []
 	layerInputs = deepcopy(inputs)
 	for layerWeights in weights:
-		layerInputs = layerSingle(layerInputs, layerWeights)
+		layerInputs = layer(layerInputs, layerWeights)
 		outputs.append(deepcopy(layerInputs))
 	return outputs
 
 def layerCost(inputs, weights, outputs):
-	return np.sum((outputs - layerSingle(inputs, weights)) ** 2)
+	return np.sum((outputs - layer(inputs, weights)) ** 2)
 		
 def neuralNetworkCost(inputs, weights, outputs):
 	return np.sum((outputs - neuralNetwork(inputs, weights)[-1]) ** 2)
