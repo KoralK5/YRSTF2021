@@ -30,7 +30,7 @@ if __name__ == '__main__':
 	rate = 0.1
 	beta = 0.9
 	scale = 0.1
-	size = (6, 6)
+	size = (48, 48)
 	layerData = [32, 32, 32, len(labels[0][1])]
 	weights = nn.generateWeights(layerData, size[0]*size[1])
 
@@ -56,7 +56,7 @@ if __name__ == '__main__':
 			print(f'Time: {time.time() - start}s')
 			print('Cost:', cost/1)
 			print('\nPred:', newOutputs)
-			print('Real:', outputs)
+			print('Real:', [outputs])
 
 			f = open(f'{path}scores.csv', 'a')
 			f.write(f'\n{cost/1}'); f.close()
