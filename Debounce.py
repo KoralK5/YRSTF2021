@@ -1,6 +1,6 @@
-import TNeuralNetwork as nn
+import NeuralNetwork as nn
 from numpy import tanh
-from copy import deepcopy
+import _pickle as cPickle
 
 class Layer:
 	def __init__(self, inputs, weights, outputs, dx):
@@ -10,18 +10,18 @@ class Layer:
 		self.dx = dx
 
 	def adjustWeight(self, neuron, weight):
-		newWeights = deepcopy(self.weights)
+		newWeights = cPickle.loads(cPickle.dumps(self.weights, -1))
 		newWeights[neuron][weight] += self.dx
 		return (nn.layerCost(self.inputs, newWeights, self.outputs) - nn.layerCost(self.inputs, self.weights, self.outputs)) / self.dx
 
 	def adjustNeuron(self, neuron):
-		newInputs = deepcopy(self.inputs)
+		newInputs = cPickle.loads(cPickle.dumps(self.inputs, -1))
 		newInputs[neuron] += self.dx
 		return (nn.layerCost(newInputs, self.weights, self.outputs) - nn.layerCost(self.inputs, self.weights, self.outputs)) / self.dx
 		
 	def adjustLayer(self, rate, beta, scale, velW, velI, preVelW, preVelI):
-		newWeights = deepcopy(self.weights)
-		newInputs = deepcopy(self.inputs)
+		newWeights = cPickle.loads(cPickle.dumps(self.weights, -1))
+		newInputs = cPickle.loads(cPickle.dumps(self.inputs, -1))
 		for neuron in range(len(self.weights)):
 			for weight in range(len(self.weights[neuron])):
 				gradient = self.adjustWeight(neuron, weight)
@@ -48,17 +48,17 @@ class Network:
 		self.dx = dx
 
 	def adjustWeight(self, layer, neuron, weight):
-		newWeights = deepcopy(self.weights)
+		newWeights = cPickle.loads(cPickle.dumps(self.weights, -1))
 		newWeights[layer][neuron][weight] += self.dx
 		return (nn.neuralNetworkCost(self.inputs, newWeights, self.outputs) - nn.neuralNetworkCost(self.inputs, self.weights, self.outputs)) / self.dx
 
 	def adjustNeuron(self, layer, neuron):
-		newInputs = deepcopy(self.inputs)
+		newInputs = cPickle.loads(cPickle.dumps(self.inputs, -1))
 		newInputs[layer][neuron] += self.dx
 		return (nn.neuralNetworkCost(newInputs, self.weights, self.outputs) - nn.neuralNetworkCost(self.inputs, self.weights, self.outputs)) / self.dx
 		
 	def adjustNetwork(self, rate):
-		newWeights = deepcopy(self.weights)
+		newWeights = cPickle.loads(cPickle.dumps(self.weights, -1))
 		for layer in range(len(self.weights)):
 			for neuron in range(len(self.weights[layer])):
 				for weight in range(len(self.weights[layer][neuron])):
@@ -66,11 +66,12 @@ class Network:
 		return newWeights
 
 def backPropagation(inputs, weights, outputs, dx, rate, beta, scale):
-	newWeights = deepcopy(weights)[::-1]
-	newOutputs = deepcopy(outputs)
+	newWeights = cPickle.loads(cPickle.dumps(weights[::-1], -1))
+	newOutputs = cPickle.loads(cPickle.dumps(outputs, -1))
 	
 	inps = nn.neuralNetwork(inputs, weights)
-	networkInputs = inps[-2::-1] + [deepcopy(inputs)]
+
+	networkInputs = inps[-2::-1] + [cPickle.loads(cPickle.dumps(inputs, -1))]
 
 	velW, velI = 0, 0
 	preVelW, preVelI = 0, 0
