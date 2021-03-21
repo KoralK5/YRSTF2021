@@ -1,10 +1,10 @@
 import numpy as np
-from copy import deepcopy
 from numba import njit
+import _pickle as cPickle
 
 def generateWeights(layerData, inputQuantity):
 	layerDepthLimit = len(layerData)
-	augmentedLayerData = [inputQuantity] + deepcopy(layerData)
+	augmentedLayerData = [inputQuantity] + cPickle.loads(cPickle.dumps(layerData, -1))
 	return [np.random.rand(layerData[layerDepth], augmentedLayerData[layerDepth] + 1) - 0.5 for layerDepth in range(layerDepthLimit)]
 
 @njit(nopython=True)
@@ -30,10 +30,10 @@ def layer(inputs, weights):
 
 def neuralNetwork(inputs, weights):
 	outputs = []
-	layerInputs = deepcopy(inputs)
+	layerInputs = cPickle.loads(cPickle.dumps(inputs, -1))
 	for layerWeights in weights:
 		layerInputs = layer(layerInputs, layerWeights)
-		outputs.append(deepcopy(layerInputs))
+		outputs.append(cPickle.loads(cPickle.dumps(layerInputs, -1)))
 	return outputs
 
 def layerCost(inputs, weights, outputs):
