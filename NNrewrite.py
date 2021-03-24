@@ -63,4 +63,3 @@ def debounce(inputs, weights, outputs, dx, **kwargs):
     dxInputsOutputs = layer(dxInputs, weights, actFunc = actFunc)
     dxWeightsCosts = (outputs - dxWeightsOutputs) ** 2
     dxInputsCosts = (outputs - dxInputsOutputs) ** 2
-    # note find a way to possible make shape of costs the same as weights (possibly adjust generation method, too sleepy rn tho)
