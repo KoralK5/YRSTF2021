@@ -57,7 +57,7 @@ def debounce(inputs, weights, outputs, dx, **kwargs):
         normalCost = (outputs - layer(inputs, weights, actFunc = actFunc)) ** 2
     neuronAmount, weightAmount = len(weights), len(weights[0])
     totalWeightAmount = neuronAmount * weightAmount
-    dxWeights = np.reshape(np.tile(np.append(dx, np.zeros((totalWeightAmount))), totalWeightAmount)[:totalWeightAmount ** 2], (totalWeightAmount, neuronAmount, weightAmount)) + weights
+    dxWeights = np.reshape(np.tile(np.append(dx, np.zeros((totalWeightAmount))), totalWeightAmount)[:totalWeightAmount ** 2], (neuronAmount, weightAmount, neuronAmount, weightAmount)) + weights
     dxInputs = np.identity(len(inputs)) * dx + inputs
     dxWeightsOutputs = layer(inputs, dxWeights, actFunc = actFunc)
     dxInputsOutputs = layer(dxInputs, weights, actFunc = actFunc)
