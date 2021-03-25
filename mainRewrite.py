@@ -58,15 +58,18 @@ if __name__ == '__main__':
 		inputs = grabGray(row[0], f'{path}train\\', size)
 		outputs = [int(row[1])]
 		
+		inps = nn.neuralNetwork(inputs, weights)
+		networkInputs = inps[-2::-1] + deepcopy(inputs)
+
 		for layer in range(len(layerData)):
-			print(inputs) #fix the inputs (generate each layers' input)
-			weights[layer], inputs[layer] = nn.backPropagation(inputs[layer], weights[layer], outputs, dx, rate=rate, beta=beta, scale=scale)
+			print(networkInputs)
+			weights[layer], networkInputs[layer] = nn.backPropagation(networkInputs[layer], weights[layer], outputs, dx, rate=rate, beta=beta, scale=scale)
 	
 		np.save(f'{path}multiWeights.npy', np.array(weights, dtype=object))
 		iterCost, iterResults = nn.neuralNetworkCost(inputs, weights, outputs)
 		cost += iterCost
 
-		if not (num)%resultPer:
+		if not num%resultPer:
 			print('\n\nNetwork:', num)
 			print(f'Time: {time.time() - start}s')
 			print('Cost:', cost/resultPer)
@@ -76,5 +79,5 @@ if __name__ == '__main__':
 			f = open(f'{path}scores.csv', 'a')
 			f.write(f'\n{cost/resultPer}'); f.close()
 			cost = 0
-
+		
 		num += 1
