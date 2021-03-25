@@ -30,6 +30,7 @@ if __name__ == '__main__':
 	scale = 0.1
 	layerData = [18, 18, 1]
 	colors = 1
+	resultPer = 1
 
 	if colors == 1:
 		grab = grabGray
@@ -60,15 +61,15 @@ if __name__ == '__main__':
 		iterCost, iterResults = nn.neuralNetworkCost(inputs, weights, outputs)
 		cost += iterCost
 
-		if not (num)%1:
+		if not (num)%resultPer:
 			print('\n\nNetwork:', num)
 			print(f'Time: {time.time() - start}s')
-			print('Cost:', cost/1)
+			print('Cost:', cost/resultPer)
 			print('\nPred:', iterResults)
 			print('Real:', outputs)
 
 			f = open(f'{path}scores.csv', 'a')
-			f.write(f'\n{cost/1}'); f.close()
+			f.write(f'\n{cost/resultPer}'); f.close()
 			cost = 0
 
 		num += 1
