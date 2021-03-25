@@ -1,5 +1,6 @@
 from PIL import Image
 import time
+import _pickle
 import random; random.seed(1)
 import numpy as np
 import NNrewriteV5 as nn
@@ -14,6 +15,9 @@ if __name__ == '__main__':
 		f = Image.open(f'{path}{uuid}.tif').resize(size)
 		a = np.array([[sum(col)/765 for col in row] for row in np.array(f)])
 		return np.reshape(a, size[0]*size[1])
+
+	def deepcopy(x):
+		return _pickle.loads(_pickle.dumps(x))
 
 	print('Imports Sucessfull')
 
@@ -53,8 +57,9 @@ if __name__ == '__main__':
 	for row in labels:
 		inputs = grabGray(row[0], f'{path}train\\', size)
 		outputs = [int(row[1])]
-
+		
 		for layer in range(len(layerData)):
+			print(inputs) #fix the inputs (generate each layers' input)
 			weights[layer], inputs[layer] = nn.backPropagation(inputs[layer], weights[layer], outputs, dx, rate=rate, beta=beta, scale=scale)
 	
 		np.save(f'{path}multiWeights.npy', np.array(weights, dtype=object))
