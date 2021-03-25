@@ -58,8 +58,7 @@ if __name__ == '__main__':
 		inputs = grabGray(row[0], f'{path}train\\', size)
 		outputs = [int(row[1])]
 		
-		inps = nn.neuralNetwork(inputs, weights)
-		networkInputs = inps[-2::-1] + deepcopy(inputs)
+		networkInputs = [deepcopy(inputs), nn.neuralNetwork(inputs, weights)]
 
 		for layer in range(len(layerData)):
 			print(networkInputs)
