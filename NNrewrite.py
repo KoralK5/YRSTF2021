@@ -24,7 +24,11 @@ def layer(inputs, weights, **kwargs):
 	else:
 		actFunc = sigmoid
 	
-	return actFunc(np.append(inputs, 1) @ weights.transpose())
+	shape = list(inputs.shape)
+	shape[-1] = 1
+	bias = np.full(shape, 1)
+
+	return actFunc(np.append(inputs, bias, axis = len(shape) - 1) @ weights.transpose())
 
 def neuralNetwork(inputs, weights, **kwargs):
 	if 'actFunc' in kwargs:
@@ -68,9 +72,9 @@ def optimizer(inputs, weights, outputs, dx, **kwargs):
 	dxWeightsCosts, dxInputsCosts = (outputs - dxWeightsOutputs) ** 2, (outputs - dxInputsOutputs) ** 2
 	weightsGradients, inputsGradients = (dxWeightsCosts - normalCost) / dx, (dxInputsCosts - normalCost) / dx
 	
-	newWeights, newInputs = weights - weightsGradients * rate, inputs - inputsGradients * rate
+	print(weights)
 
-	return newWeights, newInputs
+	return weights - weightsGradients * rate, inputs - inputsGradients * rate
 
 def backPropagation(inputs, weights, outputs, dx, **kwargs):
 	newWeights = deepcopy(weights)[::-1]
