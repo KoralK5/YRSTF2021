@@ -1,21 +1,23 @@
-from copy import deepcopy
 from PIL import Image
 import time
+import _pickle
 import random; random.seed(1)
 import numpy as np
-import NeuralNetwork as nn
-import Debounce as D
+import NNrewriteV5 as nn
 
 if __name__ == '__main__':
 	def grabRGB(uuid, path, size):
-		f = Image.open(f'{path}{uuid}.tif').resize(size)
+		f = Image.open(f'{path}{uuid}.tif').resize(size[:-1])
 		a = np.array(f)
-		return [1-row/255 for row in np.reshape(a, size[0]*size[1])]
+		return np.ndarray.flatten(a)/255
 
-	def grabG(uuid, path, size):
+	def grabGray(uuid, path, size):
 		f = Image.open(f'{path}{uuid}.tif').resize(size)
-		a = np.array([[1-sum(col)/765 for col in row] for row in np.array(f)])
+		a = np.array([[sum(col)/765 for col in row] for row in np.array(f)])
 		return np.reshape(a, size[0]*size[1])
+
+	def deepcopy(x):
+		return _pickle.loads(_pickle.dumps(x))
 
 	print('Imports Sucessfull')
 
@@ -30,9 +32,19 @@ if __name__ == '__main__':
 	rate = 0.1
 	beta = 0.9
 	scale = 0.1
-	size = (48, 48)
-	layerData = [32, 32, 32, len(labels[0][1])]
-	weights = nn.generateWeights(layerData, size[0]*size[1])
+	layerData = [18, 18, 1]
+	colors = 1
+	resultPer = 1
+
+	if colors == 1:
+		grab = grabGray
+		size = (96, 96)
+	
+	else:
+		grab = grabRGB
+		size = (96, 96, 3)
+
+	weights = nn.generateWeights(layerData, size[0]*size[1]*colors)
 
 	print('Variables Initialized')
 	open(f'{path}scores.csv', 'w+').truncate(0)
@@ -41,25 +53,26 @@ if __name__ == '__main__':
 
 	start = time.time()
 
-	num, cost = 0, 0
+	num, cost = 1, 0
 	for row in labels:
-		inputs = grabG(row[0], f'{path}train\\', size)
-		outputs = int(row[1])
+		inputs = grabGray(row[0], f'{path}train\\', size)
+		outputs = np.array([int(row[1])])
+		networkInputs = nn.neuralNetwork(inputs, weights)
 
-		weights, newOutputs = D.backPropagation(inputs, weights, outputs, dx, rate, beta, scale)
-		np.save(f'{path}weights.npy', np.array(weights, dtype=object))
+		weights, iterResults, iterCost = nn.backPropagation(inputs, weights, outputs, dx, rate=rate, beta=beta, scale=scale)
+	
+		np.save(f'{path}multiWeights.npy', np.array(weights, dtype=object))
+		cost += iterCost
 
-		cost += nn.neuralNetworkCost(inputs, weights, outputs)
-
-		if not (num+1)%1:
-			print('\n\nNetwork:', num+1)
+		if not num%resultPer:
+			print('\n\nNetwork:', num)
 			print(f'Time: {time.time() - start}s')
-			print('Cost:', cost/1)
-			print('\nPred:', newOutputs)
-			print('Real:', [outputs])
+			print('Cost:', cost/resultPer)
+			print('\nPred:', iterResults)
+			print('Real:', outputs)
 
 			f = open(f'{path}scores.csv', 'a')
-			f.write(f'\n{cost/1}'); f.close()
+			f.write(f'\n{cost/resultPer}'); f.close()
 			cost = 0
-
+		
 		num += 1
