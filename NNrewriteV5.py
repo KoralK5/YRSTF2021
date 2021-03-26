@@ -1,9 +1,9 @@
 import numpy as np
-import _pickle as pkl
+import _pickle
 from numba import jit
 
 def deepcopy(x):
-	return pkl.loads(pkl.dumps(x))
+	return _pickle.loads(_pickle.dumps(x))
 
 @jit(nopython=True)
 def softmax(x):
@@ -23,6 +23,7 @@ def layer(inputs, weights, **kwargs):
 		actFunc = kwargs['actFunc']
 	else:
 		actFunc = sigmoid
+	
 	return actFunc(np.append(inputs, 1) @ weights.transpose())
 
 def neuralNetwork(inputs, weights, **kwargs):
@@ -39,13 +40,10 @@ def neuralNetwork(inputs, weights, **kwargs):
 	for layerWeights in weights[:-1]:
 		layerInputs = layer(layerInputs, layerWeights, actFunc = actFunc)
 		neuronOutputs.append(deepcopy(layerInputs))
-	neuronOutputs.append(layerInputs, weights[-1], actFunc = lastActFunc)
+	neuronOutputs.append(weights[-1])
 	return neuronOutputs
 
-def neuralNetworkCost(inputs, weights, outputs):
-	return np.sum((outputs - neuralNetwork(inputs, weights)[-1]) ** 2)
-
-def backPropagation(inputs, weights, outputs, dx, **kwargs):
+def optimizer(inputs, weights, outputs, dx, **kwargs):
 	if 'actFunc' in kwargs:
 		actFunc = kwargs['actFunc']
 	else:
@@ -54,16 +52,34 @@ def backPropagation(inputs, weights, outputs, dx, **kwargs):
 		normalCost = kwargs['normalCost']
 	else:
 		normalCost = (outputs - layer(inputs, weights, actFunc = actFunc)) ** 2
+	if 'rate' in kwargs:
+		rate = kwargs['rate']
+	else:
+		rate = 0.1
 
 	neuronAmount, weightAmount = len(weights), len(weights[0])
 	totalWeightAmount = neuronAmount * weightAmount
 	
 	dxWeights = np.reshape(np.tile(np.append(dx, np.zeros((totalWeightAmount))), totalWeightAmount)[:totalWeightAmount ** 2], (neuronAmount, weightAmount, neuronAmount, weightAmount)) + weights
 	dxInputs = np.identity(len(inputs)) * dx + inputs
-	
+
 	dxWeightsOutputs, dxInputsOutputs = layer(inputs, dxWeights, actFunc=actFunc), layer(dxInputs, weights, actFunc=actFunc)
 
 	dxWeightsCosts, dxInputsCosts = (outputs - dxWeightsOutputs) ** 2, (outputs - dxInputsOutputs) ** 2
 	weightsGradients, inputsGradients = (dxWeightsCosts - normalCost) / dx, (dxInputsCosts - normalCost) / dx
+	
+	newWeights, newInputs = weights - weightsGradients * rate, inputs - inputsGradients * rate
 
-	return weights - (weightsGradients * rate), inputs - (inputsGradients * rate)
+	return newWeights, newInputs
+
+def backPropagation(inputs, weights, outputs, dx, **kwargs):
+	newWeights = deepcopy(weights)[::-1]
+	newOutputs = deepcopy(outputs)
+	
+	inps = neuralNetwork(inputs, weights)
+	networkInputs = inps[-2::-1] + [deepcopy(inputs)]
+
+	for currentLayer in range(len(networkInputs)):
+		newWeights[currentLayer], newOutputs = optimizer(networkInputs[currentLayer], newWeights[currentLayer], newOutputs, dx, **kwargs)
+
+	return newWeights[::-1], newOutputs, np.sum((outputs - newOutputs) ** 2)
