@@ -56,17 +56,14 @@ if __name__ == '__main__':
 	num, cost = 1, 0
 	for row in labels:
 		inputs = grabGray(row[0], f'{path}train\\', size)
-		outputs = [int(row[1])]
-		
-		networkInputs = [deepcopy(inputs), nn.neuralNetwork(inputs, weights)]
+		outputs = int(row[1])
+		networkInputs = nn.neuralNetwork(inputs, weights)
 
-		for layer in range(len(layerData)):
-			print(networkInputs)
-			weights[layer], networkInputs[layer] = nn.backPropagation(networkInputs[layer], weights[layer], outputs, dx, rate=rate, beta=beta, scale=scale)
-	
+		weights = nn.backPropagation(inputs, weights, outputs, dx, rate=rate, beta=beta, scale=scale)
 		np.save(f'{path}multiWeights.npy', np.array(weights, dtype=object))
-		iterCost, iterResults = nn.neuralNetworkCost(inputs, weights, outputs)
-		cost += iterCost
+		
+		iterResults = np.sum(nn.neuralNetwork(inputs, weights, rate=rate, beta=beta, scale=scale)[-1])
+		cost += (outputs - iterResults) ** 2
 
 		if not num%resultPer:
 			print('\n\nNetwork:', num)
