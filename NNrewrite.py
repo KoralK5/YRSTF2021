@@ -90,6 +90,6 @@ def backPropagation(inputs, weights, outputs, dx, **kwargs):
 	inps = neuralNetwork(inputs, weights)
 	networkInputs = inps[-2::-1] + [deepcopy(inputs)]
 
-	for currentLayer in range(len(networkInputs)-1):
+	for currentLayer in range(len(networkInputs)):
 		newWeights[currentLayer], networkInputs[currentLayer] = optimizer(networkInputs[currentLayer], newWeights[currentLayer], newOutputs, dx, **kwargs)
 	return newWeights[::-1]
