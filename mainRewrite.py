@@ -17,7 +17,7 @@ def grabGray(uuid, path, size):
 
 print('Imports Sucessfull')
 
-path = 'D:\\Users\\Koral Kulacoglu\\Coding\\python\\AI\\YRSTF2021\\Data\\'
+path = 'enter your path'
 labelsFile = open(f'{path}train_labels.csv')
 labels = [row.split(',') for row in labelsFile.read().split('\n')][1:]
 labelsFile.close()
