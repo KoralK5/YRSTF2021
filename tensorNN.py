@@ -2,6 +2,7 @@ print('numpy'); import numpy as np
 print('os'); import os
 print('cv2'); import cv2
 print('matplotlib.pyplot'); import matplotlib.pyplot as plt
+print('random); from random import randrange
 print('pickle'); import pickle
 print('Image'); from PIL import Image
 print('tensorflow'); import tensorflow as tf
@@ -74,8 +75,6 @@ labels = [row.split(',') for row in labelsFile.read().split('\n')][1:]
 labelsFile.close()
 
 print('Testing Ready')
-
-from random import randrange
 
 categories = ['Benign', 'Malignant']
 
