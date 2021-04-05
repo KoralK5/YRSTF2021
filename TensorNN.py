@@ -76,14 +76,25 @@ labelsFile.close()
 
 print('Testing Ready')
 
+from random import randrange
+from IPython.display import clear_output
+
 categories = ['Benign', 'Malignant']
 
-loc = randrange(0, len(labels))
-inputs, image = testRGB(labels[loc])
+curr = 0
+while curr != 25:
+    loc = randrange(0, len(labels))
+    inputs, image = testRGB(labels[loc])
 
-pred = model.predict(inputs)
+    pred = model.predict(inputs)
 
-print('   PREDICTION :', categories[round(pred[0][0])], '-', format(pred[0][0], '.2f'))
+    print('   PREDICTION :', categories[round(pred[0][0])], '-', format(pred[0][0], '.2f'))
 
-plt.imshow(image)
-plt.show()
+    plt.imshow(image)
+    plt.show(block=False)
+    plt.pause(2)
+    plt.close()
+    clear_output(wait  = True)
+    
+    curr += 1
+      
