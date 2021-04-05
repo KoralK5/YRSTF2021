@@ -4,14 +4,16 @@ import _pickle as pkl
 from numba import jit
 
 
-@jit(nopython=True)
 def softmax(x):
 	return np.exp(x - np.max(x)) / np.exp(x - np.max(x)).sum()
 
 
-@jit(nopython=True)
 def sigmoid(x):
 	return 1 / (1 + np.exp(-x))
+
+
+def sigmoidD(x):
+	return sigmoid(x) * (1 - sigmoid(x))
 
 
 def deepcopy(x):
@@ -34,32 +36,32 @@ def generateWeights(layerData, **kwargs):
     return [np.random.uniform(minimum, maximum, [layerData[1:][layer], layerData[layer] + 1]) for layer in range(len(layerData) - 1)]
 
 
-def layer(inputs, weights, **kwargs):
-    return karges(kwargs, 'actFunc', sigmoid)(np.tensordot(np.append(inputs, np.full(list(inputs.shape)[:-1] + [1], 1), axis = -1), weights, axes = [[-1], [-1]]))
+def layer(inputs, weights):
+    return np.tensordot(np.append(inputs, np.full(list(inputs.shape)[:-1] + [1], 1), axis = -1), weights, axes = [[-1], [-1]])
 
 
 def neuralNetwork(inputs, weights, **kwargs):
-    actFunc, finalActFunc = karges(kwargs, 'actFunc', sigmoid), karges(kwargs, 'finalActFunc', softmax)
+    actFunc, finalActFunc = karges(kwargs, 'actFunc', sigmoid), karges(kwargs, 'finalActFunc', sigmoid)
     neuronOutputs = []
     layerInputs = deepcopy(inputs)
     for layerWeights in weights[:-1]:
-        layerInputs = layer(layerInputs, layerWeights, actFunc = actFunc)
+        layerInputs = actFunc(layer(layerInputs, layerWeights))
         neuronOutputs.append(deepcopy(layerInputs))
-    
-    neuronOutputs.append(layer(layerInputs, weights[-1], actFunc = finalActFunc))
+    neuronOutputs.append(finalActFunc(layer(layerInputs, weights[-1])))
     return neuronOutputs
 
 
-def generateDx(inputs, weights, **kwargs):
-    dx, neuronAmount, weightAmount = karges(kwargs, 'dx', 0.01), karges(kwargs, 'neuronAmount', len(weights)), karges(kwargs, 'weightAmount', len(weights[0]))
-    totalWeightAmount = neuronAmount * weightAmount
-    return np.identity(len(inputs)) * dx + inputs, np.reshape(np.tile(np.append(dx, np.zeros((totalWeightAmount))), totalWeightAmount)[:totalWeightAmount ** 2], (neuronAmount, weightAmount, neuronAmount, weightAmount)) + weights
-
-
 def optimizer(inputs, weights, outputs, **kwargs):
-    rawCost, learningRate, dx = karges(kwargs, 'rawCost', cost(outputs, layer(inputs, weights, **kwargs))), karges(kwargs, 'learningRate', 0.1), karges(kwargs, 'dx', 0.01)
-    dxInputs, dxWeights = generateDx(inputs, weights, **kwargs)
-    return inputs - (cost(outputs, layer(dxInputs, weights, **kwargs)) - rawCost) / dx * learningRate, weights - (cost(outputs, layer(inputs, dxWeights, **kwargs)) - rawCost) / dx * learningRate
+    learningRate, actFunc, actFuncD = karges(kwargs, 'learningRate', 0.1), karges(kwargs, 'actFunc', sigmoid), karges(kwargs, 'actFuncD', sigmoidD)
+    weightedSum = layer(inputs, weights)
+    layerOutputs = actFunc(weightedSum)
+    chainDerivCoef = np.sum(2 * (layerOutputs - outputs), axis = -1) * actFuncD(weightedSum)
+    #chainDerivCoef = 2 * (layerOutputs - outputs) * actFuncD(weightedSum)
+    inputsGrad = np.sum(weights.transpose()[:-1] * chainDerivCoef, axis = -1)
+    weightsGrad = np.outer(np.append(inputs, 1), chainDerivCoef).transpose()
+    newInputs = inputs - inputsGrad * learningRate
+    newWeights = weights - weightsGrad * learningRate
+    return newInputs, newWeights
 
 
 def backProp(inputs, weights, outputs, **kwargs):
@@ -69,3 +71,27 @@ def backProp(inputs, weights, outputs, **kwargs):
     for layerIndex, layerWeights in enumerate(newWeights):
         targetOutputs, newWeights[layerIndex] = optimizer(layerInputs[layerIndex], layerWeights, targetOutputs, **kwargs)
     return newWeights[::-1]
+
+
+def train(datasetFunc, weights, **kwargs):
+    costThreshold, iterLimit = karges(kwargs, 'costThreshold', 0.1), karges(kwargs, 'iterLimit', 1000)
+    iterCost = 1
+    newWeights = deepcopy(weights)
+    for iteration in range(iterLimit):
+        if iterCost <= costThreshold:
+            break
+        inputs, outputs = datasetFunc(iteration, **kwargs)
+        newWeights = backProp(inputs, newWeights, outputs, **kwargs)
+        prediction = neuralNetwork(inputs, weights, **kwargs)[-1]
+        iterCost = cost(outputs, prediction)
+        print(f'\n\n\nStatistics of iteration #{iteration + 1}:\n\nPrediction: {prediction}\n\nDataset Output: {outputs}\n\nCost: {iterCost}')
+    return newWeights
+
+
+if __name__ == '__main__':
+    i = np.arange(2)
+    o = np.array([1, 0, 1])
+    o1 = np.array([1, 0, 0, 1, 1])
+    w = generateWeights([2, 5, 3])
+    w1 = deepcopy(w[0])
+    nw = deepcopy(w1)

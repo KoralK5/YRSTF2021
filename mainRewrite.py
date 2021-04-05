@@ -1,77 +1,34 @@
 from PIL import Image
 import time
 import _pickle
-import random; random.seed(1)
 import numpy as np
-import NNrewriteFinal as nn
+import cupy as cp
+import xdNNrewrite as nn
+import time
 
-def grabRGB(uuid, path, size):
-	f = Image.open(f'{path}{uuid}.tif').resize(size[:-1])
+f = open('/home/iantitor/Desktop/histopathologic-cancer-detection/train_labels.csv', 'r')
+data = f.read().split('\n')[1:-1]
+f.close()
+for x, d in enumerate(data):
+    a = d.split(',')
+    data[x] = [a[0], np.array([int(a[1])])]
+print('Dataset list initialized successfully')
+
+
+def grabRGB(uuid, path):
+	f = Image.open(f'{path}{uuid}.tif')
 	a = np.array(f)
 	return np.ndarray.flatten(a)/255
 
-def grabGray(uuid, path, size):
-	f = Image.open(f'{path}{uuid}.tif').resize(size)
-	a = np.array([[sum(col)/765 for col in row] for row in np.array(f)])
-	return np.reshape(a, size[0]*size[1])
 
-print('Imports Sucessfull')
+def datasetFunc(index, **kwargs):
+    labels, path = kwargs['labels'], kwargs['path']
+    inputs, outputs = labels[index % len(labels)]
+    inputs = grabRGB(inputs, path)
+    return inputs, outputs
 
-path = 'enter your path'
-labelsFile = open(f'{path}train_labels.csv')
-labels = [row.split(',') for row in labelsFile.read().split('\n')][1:]
-labelsFile.close()
-
-print('Data Read')
-
-dx = 1.001
-rate = 0.1
-beta = 0.9
-scale = 0.1
-layerData = [18, 18, 1]
-colors = 1
-resultPer = 1
-size = [96, 96]
-
-if colors == 1:
-	grab = grabGray
-	size = (size[0], size[1])
-	layerData = [size[0]*size[1]] + layerData
-
-else:
-	grab = grabRGB
-	size = (size[0], size[1], 3)
-	layerData = [size[0]*size[1]*size[2]] + layerData
-
-weights = nn.generateWeights(layerData)
-
-print('Variables Initialized')
-open(f'{path}scores.csv', 'w+').truncate(0)
-
-print('Training...')
+weights = nn.generateWeights([27648, 64, 32, 16, 1], minimum = -1, maximum = 1)
 
 start = time.time()
-
-num, cost = 1, 0
-for row in labels:
-	inputs = grabGray(row[0], f'{path}train\\', size)
-	outputs = [int(row[1])]
-
-	iterResults = nn.neuralNetwork(inputs, weights, dx=dx, rate=rate, beta=beta, scale=scale)[-1]
-	weights = nn.backProp(inputs, weights, outputs, dx=dx, rate=rate, beta=beta, scale=scale)
-	
-	np.save(f'{path}multiWeights.npy', np.array(weights, dtype=object))
-	
-	cost += np.sum((outputs - iterResults) ** 2)
-	if not num%resultPer:
-		print('\n\nNetwork:', num)
-		print(f'Time: {time.time() - start}s')
-		print('Cost:', cost/resultPer)
-		print('\nPred:', iterResults)
-		print('Real:', outputs)
-
-		f = open(f'{path}scores.csv', 'a')
-		f.write(f'\n{cost/resultPer}'); f.close()
-		cost = 0
-	
-	num += 1
+newWeights = nn.train(datasetFunc, weights, iterLimit = len(data), path = '/home/iantitor/Desktop/histopathologic-cancer-detection/train/', labels = data, costThreshold = -1, learningRate = 1)
+print(time.time() - start)
