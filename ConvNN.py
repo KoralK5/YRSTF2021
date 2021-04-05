@@ -11,7 +11,7 @@ from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten, Conv2D,
 
 print('Imports Sucessfull')
 
-path = 'D:\\Users\\Koral Kulacoglu\\Coding\\python\\AI\\YRSTF2021\\Data\\'
+path = input('Dataset Location: ')
 labelsFile = open(f'{path}train_labels.csv')
 labels = [row.split(',') for row in labelsFile.read().split('\n')][1:]
 labelsFile.close()
