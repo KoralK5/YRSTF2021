@@ -3,7 +3,7 @@ import time
 import _pickle
 import numpy as np
 import cupy as cp
-import xdNNrewrite as nn
+import NeuralNetwork as nn
 import time
 
 f = open('/home/iantitor/Desktop/histopathologic-cancer-detection/train_labels.csv', 'r')
