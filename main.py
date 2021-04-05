@@ -6,7 +6,9 @@ import cupy as cp
 import NeuralNetwork as nn
 import time
 
-f = open('/home/iantitor/Desktop/histopathologic-cancer-detection/train_labels.csv', 'r')
+path = input('Dataset Location: ')
+
+f = open(f'{path}/histopathologic-cancer-detection/train_labels.csv', 'r')
 data = f.read().split('\n')[1:-1]
 f.close()
 for x, d in enumerate(data):
@@ -30,5 +32,5 @@ def datasetFunc(index, **kwargs):
 weights = nn.generateWeights([27648, 64, 32, 16, 1], minimum = -1, maximum = 1)
 
 start = time.time()
-newWeights = nn.train(datasetFunc, weights, iterLimit = len(data), path = '/home/iantitor/Desktop/histopathologic-cancer-detection/train/', labels = data, costThreshold = -1, learningRate = 1)
+newWeights = nn.train(datasetFunc, weights, iterLimit = len(data), path = f'{path}/train/', labels = data, costThreshold = -1, learningRate = 1)
 print(time.time() - start)
