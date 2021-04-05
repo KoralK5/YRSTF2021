@@ -1,5 +1,5 @@
 # YRSTF2021
-Our 2021 York Region Science and Technology Fair repository containing both our original and tensorflow-optimized neural network code
+Our 2021 York Region Science and Technology Fair repository containing both our original and tensorflow-optimized neural network code.
 
 [Project Report](https://github.com/KoralK5/YRSTF2021/files/6254010/Debounce.pdf)
 
