@@ -1,6 +1,7 @@
 print('numpy'); import numpy as np
 print('matplotlib.pyplot'); import matplotlib.pyplot as plt
 print('IPython.display'); from IPython.display import clear_output
+print('random'); from random import randrange
 print('Image'); from PIL import Image
 print('tensorflow'); import tensorflow as tf
 
@@ -42,9 +43,6 @@ print('   PREDICTION :', categories[round(pred1[0][0])], '-', format(pred1[0][0]
 
 plt.imshow(image1)
 plt.show(block=False)
-
-from random import randrange
-from IPython.display import clear_output
 
 def show():
     categories = ['Benign', 'Malignant']
